@@ -1,6 +1,8 @@
 
 # Get up and Running
 
+Find it on [Nuget](https://www.nuget.org/packages/rob_bl8ke.Qik/)
+
 ### Run
 To run the console application only the `dotnet run` command is necessary unless running for the first time.
 
