@@ -1,9 +1,0 @@
-﻿@normalText = text [Title="Normal Text"];
-
-@encodedText = expression [Title="Encoded Text"] {
-	return htmlEncode(@normalText);
-};
-
-@decodedText = expression [Title="Decoded Text"] {
-	return htmlDecode(@encodedText);
-};
