@@ -1,0 +1,14 @@
+{
+        "antlr4.generation": {
+        "mode": "external",
+        "language": "CSharp",
+        "visitors": true,
+        "outputDir": "_antlr",
+        "package": "CygSoft.Qik.Antlr"
+    },
+    "antlr4.debug": {
+
+        "visualParseTreeHorizontal": true,
+        "visualParseTreeClustered": false
+    }
+}
