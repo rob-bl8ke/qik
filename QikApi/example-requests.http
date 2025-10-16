@@ -1,0 +1,176 @@
+# Example API Requests for Qik API
+
+## Health Check
+GET https://localhost:5001/api/qik/health
+
+###
+
+## Get Available Functions
+GET https://localhost:5001/api/qik/functions
+
+###
+
+## Interpret Simple Script
+POST https://localhost:5001/api/qik/interpret
+Content-Type: application/json
+
+{
+  "script": "@name => \"John Doe\"; @greeting => \"Hello, \" + @name + \"!\";"
+}
+
+###
+
+## Interpret with Variable Override
+POST https://localhost:5001/api/qik/interpret
+Content-Type: application/json
+
+{
+  "script": "@name => \"John\"; @greeting => \"Hello, \" + @name;",
+  "variables": {
+    "@name": "Alice"
+  }
+}
+
+###
+
+## Code Generation Example
+POST https://localhost:5001/api/qik/interpret
+Content-Type: application/json
+
+{
+  "script": "@className => \"UserService\"; @namespace => \"MyApp.Services\"; @property => camelCase(@className) + \"Instance\";"
+}
+
+###
+
+## Extract UI Widgets
+POST https://localhost:5001/api/qik/widgets
+Content-Type: application/json
+
+{
+  "script": "[title = \"User Name\", type = \"text\"] @userName => \"Guest\"; [title = \"Email Address\", type = \"email\"] @email => \"user@example.com\";"
+}
+
+###
+
+## Evaluate Expression - Text Transformation
+POST https://localhost:5001/api/qik/evaluate
+Content-Type: application/json
+
+{
+  "expression": "upperCase(@name)",
+  "context": {
+    "@name": "john doe"
+  }
+}
+
+###
+
+## Evaluate Expression - Multiple Functions
+POST https://localhost:5001/api/qik/evaluate
+Content-Type: application/json
+
+{
+  "expression": "camelCase(replace(@input, \" \", \"_\"))",
+  "context": {
+    "@input": "Hello World Example"
+  }
+}
+
+###
+
+## Evaluate Expression - Date Formatting
+POST https://localhost:5001/api/qik/evaluate
+Content-Type: application/json
+
+{
+  "expression": "currentDate(\"yyyy-MM-dd\")"
+}
+
+###
+
+## Evaluate Expression - GUID Generation
+POST https://localhost:5001/api/qik/evaluate
+Content-Type: application/json
+
+{
+  "expression": "guid(\"u\")"
+}
+
+###
+
+## Evaluate Expression - Conditional (Ternary)
+POST https://localhost:5001/api/qik/evaluate
+Content-Type: application/json
+
+{
+  "expression": "@count == \"0\" ? \"empty\" : \"has items\"",
+  "context": {
+    "@count": "5"
+  }
+}
+
+###
+
+## Complex Script - URL Builder
+POST https://localhost:5001/api/qik/interpret
+Content-Type: application/json
+
+{
+  "script": "@baseUrl => \"https://api.example.com\"; @endpoint => \"users/search\"; @query => \"john doe\"; @encodedQuery => urlEncode(@query); @fullUrl => @baseUrl + \"/\" + @endpoint + \"?q=\" + @encodedQuery;"
+}
+
+###
+
+## Complex Script - HTML Generator
+POST https://localhost:5001/api/qik/interpret
+Content-Type: application/json
+
+{
+  "script": "@title => \"Welcome\"; @content => \"Hello World\"; @html => \"<!DOCTYPE html>\" + NEWLINE + \"<html>\" + NEWLINE + indentLine(\"<title>\" + htmlEncode(@title) + \"</title>\", TAB, 1) + NEWLINE + \"</html>\";"
+}
+
+###
+
+## Complex Script - Conditional Logic
+POST https://localhost:5001/api/qik/interpret
+Content-Type: application/json
+
+{
+  "script": "@score => \"B\"; @color => if @score == \"A\" then \"green\" else if @score == \"B\" then \"yellow\" else \"red\";"
+}
+
+###
+
+## Complex Script - Switch Statement
+POST https://localhost:5001/api/qik/interpret
+Content-Type: application/json
+
+{
+  "script": "@day => \"Saturday\"; @dayType => switch @day case \"Saturday\" then \"Weekend\" case \"Sunday\" then \"Weekend\" else \"Weekday\";"
+}
+
+###
+
+## Encoding/Decoding - Base64
+POST https://localhost:5001/api/qik/interpret
+Content-Type: application/json
+
+{
+  "script": "@original => \"Hello World\"; @encoded => base64Encode(@original); @decoded => base64Decode(@encoded);"
+}
+
+###
+
+## Text Transformation Chain
+POST https://localhost:5001/api/qik/evaluate
+Content-Type: application/json
+
+{
+  "expression": "upperCase(camelCase(@input))",
+  "context": {
+    "@input": "hello world example"
+  }
+}
+
+###

@@ -1,0 +1,6 @@
+@QikApi_HostAddress = http://localhost:5213
+
+GET {{QikApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

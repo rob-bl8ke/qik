@@ -1,0 +1,271 @@
+{
+  "info": {
+    "name": "Qik API",
+    "description": "REST API for the Qik template generation library",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "health"]
+        }
+      }
+    },
+    {
+      "name": "Get Available Functions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/functions",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "functions"]
+        }
+      }
+    },
+    {
+      "name": "Interpret Script - Simple",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"script\": \"@name => \\\"John Doe\\\"; @greeting => \\\"Hello, \\\" + @name + \\\"!\\\";\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/interpret",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "interpret"]
+        }
+      }
+    },
+    {
+      "name": "Interpret Script - With Variable Override",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"script\": \"@name => \\\"John\\\"; @greeting => \\\"Hello, \\\" + @name;\",\n  \"variables\": {\n    \"@name\": \"Alice\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/interpret",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "interpret"]
+        }
+      }
+    },
+    {
+      "name": "Interpret Script - Code Generation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"script\": \"@className => \\\"UserService\\\"; @namespace => \\\"MyApp.Services\\\"; @property => camelCase(@className) + \\\"Instance\\\";\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/interpret",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "interpret"]
+        }
+      }
+    },
+    {
+      "name": "Extract UI Widgets",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"script\": \"[title = \\\"User Name\\\", type = \\\"text\\\"] @userName => \\\"Guest\\\"; [title = \\\"Email Address\\\", type = \\\"email\\\"] @email => \\\"user@example.com\\\";\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/widgets",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "widgets"]
+        }
+      }
+    },
+    {
+      "name": "Evaluate Expression - Simple",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expression\": \"upperCase(@name)\",\n  \"context\": {\n    \"@name\": \"john doe\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/evaluate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "evaluate"]
+        }
+      }
+    },
+    {
+      "name": "Evaluate Expression - Chained Functions",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expression\": \"camelCase(replace(@input, \\\" \\\", \\\"_\\\"))\",\n  \"context\": {\n    \"@input\": \"Hello World Example\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/evaluate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "evaluate"]
+        }
+      }
+    },
+    {
+      "name": "Evaluate Expression - Date",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expression\": \"currentDate(\\\"yyyy-MM-dd\\\")\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/evaluate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "evaluate"]
+        }
+      }
+    },
+    {
+      "name": "Evaluate Expression - GUID",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expression\": \"guid(\\\"u\\\")\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/evaluate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "evaluate"]
+        }
+      }
+    },
+    {
+      "name": "Evaluate Expression - Ternary",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expression\": \"@count == \\\"0\\\" ? \\\"empty\\\" : \\\"has items\\\"\",\n  \"context\": {\n    \"@count\": \"5\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/evaluate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "evaluate"]
+        }
+      }
+    },
+    {
+      "name": "URL Builder",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"script\": \"@baseUrl => \\\"https://api.example.com\\\"; @endpoint => \\\"users/search\\\"; @query => \\\"john doe\\\"; @encodedQuery => urlEncode(@query); @fullUrl => @baseUrl + \\\"/\\\" + @endpoint + \\\"?q=\\\" + @encodedQuery;\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/interpret",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "interpret"]
+        }
+      }
+    },
+    {
+      "name": "Encoding/Decoding - Base64",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"script\": \"@original => \\\"Hello World\\\"; @encoded => base64Encode(@original); @decoded => base64Decode(@encoded);\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/interpret",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "interpret"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5213",
+      "type": "string"
+    }
+  ]
+}
