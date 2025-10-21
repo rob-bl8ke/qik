@@ -18,6 +18,29 @@
             "stopAtEntry": false
         },
         {
+            "name": "QikApi (Web API)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // Path to the QikApi Web API DLL
+            "program": "${workspaceFolder}/QikApi/bin/Debug/net9.0/QikApi.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/QikApi",
+            "stopAtEntry": false,
+            // Enable launching a web browser when ASP.NET Core starts
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s/swagger"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach"

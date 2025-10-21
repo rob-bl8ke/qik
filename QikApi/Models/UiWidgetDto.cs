@@ -24,4 +24,19 @@ public class UiWidgetDto
     /// The default value for this widget
     /// </summary>
     public string DefaultValue { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Placeholder text to display in the input field
+    /// </summary>
+    public string? Placeholder { get; set; }
+
+    /// <summary>
+    /// Indicates whether this field is required
+    /// </summary>
+    public bool? Required { get; set; }
+
+    /// <summary>
+    /// List of options for select/dropdown widgets
+    /// </summary>
+    public string[]? Options { get; set; }
 }

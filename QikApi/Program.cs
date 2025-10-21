@@ -34,15 +34,25 @@ builder.Services.AddSwaggerGen(options =>
 // Register Qik service
 builder.Services.AddSingleton<IQikService, QikService>();
 
-// Configure CORS for development
+// Configure CORS for Angular frontend
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    // Allow specific origin (Angular frontend)
+    options.AddDefaultPolicy(builder =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        builder.WithOrigins("http://localhost:4200")
+               .AllowAnyMethod()
+               .AllowAnyHeader();
     });
+
+    // Allow all origins (for development/testing only)
+    // Uncomment if you need to allow requests from any origin
+    // options.AddPolicy("AllowAll", policy =>
+    // {
+    //     policy.AllowAnyOrigin()
+    //           .AllowAnyMethod()
+    //           .AllowAnyHeader();
+    // });
 });
 
 var app = builder.Build();
@@ -59,7 +69,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
+app.UseCors();
 app.UseAuthorization();
 app.MapControllers();
 
