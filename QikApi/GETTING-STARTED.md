@@ -105,6 +105,25 @@ Use `+` to combine strings:
         else "Weekday";
 ```
 
+### Configurable Placeholders
+
+The generate endpoint supports configurable placeholder formats for maximum template flexibility:
+
+**Default format (@{variable}):**
+```json
+{
+  "placeholderPrefix": "@{",
+  "placeholderSuffix": "}"
+}
+```
+
+**Other common formats:**
+- **Dollar syntax**: `"${", "}"` → `${variable}`
+- **Mustache style**: `"{{", "}}"` → `{{variable}}`
+- **Bracket style**: `"[[", "]]"` → `[[variable]]`
+
+This allows integration with existing template systems while leveraging Qik's powerful scripting capabilities.
+
 ## API Endpoints
 
 ### 1. POST /api/qik/interpret
@@ -120,7 +139,31 @@ Execute a complete Qik script and get all variable values.
 }
 ```
 
-### 2. POST /api/qik/evaluate
+### 2. POST /api/qik/generate
+
+Generate multiple documents using fragments and configurable placeholder formats with Base64 encoded content.
+
+**Use Case:** Multi-file generation, template composition, document creation
+
+**Example:**
+```json
+{
+  "script": "QGNsYXNzTmFtZSA9PiAiVXNlciI7IEBuYW1lc3BhY2UgPT4gIk15QXBwLk1vZGVscyI7",
+  "fragments": {
+    "classTemplate": "bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTtcblxucHVibGljIGNsYXNzIEB7Y2xhc3NOYW1lfVxue1xufQ=="
+  },
+  "documents": {
+    "models/User.cs": "{classTemplate}"
+  },
+  "inputs": {
+    "@className": "Customer"
+  },
+  "placeholderPrefix": "@{",
+  "placeholderSuffix": "}"
+}
+```
+
+### 3. POST /api/qik/evaluate
 
 Evaluate a single expression with optional context.
 
@@ -136,7 +179,7 @@ Evaluate a single expression with optional context.
 }
 ```
 
-### 3. POST /api/qik/widgets
+### 4. POST /api/qik/widgets
 
 Extract UI widget metadata from a script.
 
@@ -149,7 +192,7 @@ Extract UI widget metadata from a script.
 }
 ```
 
-### 4. GET /api/qik/functions
+### 5. GET /api/qik/functions
 
 Get documentation for all available functions.
 
@@ -157,7 +200,34 @@ Get documentation for all available functions.
 
 ## Common Use Cases
 
-### 1. Text Transformation API
+### 1. Document Generation
+
+Generate multiple files using fragments and templates:
+
+```http
+POST /api/qik/generate
+{
+  "script": "QGNsYXNzTmFtZSA9PiAiVXNlciI7IEBuYW1lc3BhY2UgPT4gIk15QXBwLk1vZGVscyI7",
+  "fragments": {
+    "classTemplate": "bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTtcblxucHVibGljIGNsYXNzIEB7Y2xhc3NOYW1lfVxue1xufQ==",
+    "interfaceTemplate": "bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTtcblxucHVibGljIGludGVyZmFjZSBJQHtjbGFzc05hbWV9XG57XG59"
+  },
+  "documents": {
+    "models/User.cs": "{classTemplate}",
+    "interfaces/IUser.cs": "{interfaceTemplate}"
+  },
+  "inputs": {
+    "@className": "Customer",
+    "@namespace": "MyApp.Domain"
+  },
+  "placeholderPrefix": "@{",
+  "placeholderSuffix": "}"
+}
+```
+
+Result: Multiple Base64 encoded documents ready for file creation.
+
+### 2. Text Transformation API
 
 Transform user input on-the-fly:
 
@@ -173,7 +243,7 @@ POST /api/qik/evaluate
 
 Result: `"myVariableName"`
 
-### 2. Code Generator
+### 3. Code Generator
 
 Generate formatted code structures:
 
@@ -184,7 +254,7 @@ POST /api/qik/interpret
 }
 ```
 
-### 3. Dynamic Form Builder
+### 4. Dynamic Form Builder
 
 Extract form metadata and generate UI:
 
@@ -197,7 +267,7 @@ POST /api/qik/widgets
 
 Then use the response to build a dynamic form in your frontend.
 
-### 4. URL Builder
+### 5. URL Builder
 
 Create safe URLs with encoding:
 
@@ -208,7 +278,7 @@ POST /api/qik/interpret
 }
 ```
 
-### 5. Data Encoder/Decoder
+### 6. Data Encoder/Decoder
 
 Handle encoding transformations:
 
@@ -258,6 +328,7 @@ POST /api/qik/evaluate
 
 ### JavaScript/Fetch
 
+**Simple Transformation:**
 ```javascript
 async function transformText(input) {
   const response = await fetch('http://localhost:5213/api/qik/evaluate', {
@@ -274,8 +345,40 @@ async function transformText(input) {
 }
 ```
 
+**Document Generation:**
+```javascript
+async function generateDocuments(className, namespace) {
+  const response = await fetch('http://localhost:5213/api/qik/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      script: btoa(`@className => "${className}"; @namespace => "${namespace}";`),
+      fragments: {
+        classTemplate: btoa(`namespace @{namespace};\n\npublic class @{className}\n{\n}`)
+      },
+      documents: {
+        [`models/${className}.cs`]: "{classTemplate}"
+      },
+      placeholderPrefix: "@{",
+      placeholderSuffix: "}"
+    })
+  });
+  
+  const data = await response.json();
+  
+  // Decode Base64 content
+  const decodedDocuments = {};
+  for (const [path, content] of Object.entries(data.documents)) {
+    decodedDocuments[path] = atob(content);
+  }
+  
+  return decodedDocuments;
+}
+```
+
 ### C# / HttpClient
 
+**Simple Evaluation:**
 ```csharp
 using System.Net.Http.Json;
 
@@ -292,8 +395,34 @@ var result = await response.Content.ReadFromJsonAsync<EvaluateResponse>();
 Console.WriteLine(result.Result); // "JOHN"
 ```
 
+**Document Generation:**
+```csharp
+var generateRequest = new {
+    script = Convert.ToBase64String(Encoding.UTF8.GetBytes("@className => \"User\"; @namespace => \"MyApp.Models\";")),
+    fragments = new Dictionary<string, string> {
+        ["classTemplate"] = Convert.ToBase64String(Encoding.UTF8.GetBytes("namespace @{namespace};\n\npublic class @{className}\n{\n}"))
+    },
+    documents = new Dictionary<string, string> {
+        ["models/User.cs"] = "{classTemplate}"
+    },
+    placeholderPrefix = "@{",
+    placeholderSuffix = "}"
+};
+
+var generateResponse = await client.PostAsJsonAsync("/api/qik/generate", generateRequest);
+var generateResult = await generateResponse.Content.ReadFromJsonAsync<GenerateResponse>();
+
+// Decode Base64 content
+foreach (var doc in generateResult.Documents)
+{
+    var content = Encoding.UTF8.GetString(Convert.FromBase64String(doc.Value));
+    Console.WriteLine($"{doc.Key}:\n{content}");
+}
+```
+
 ### Python / Requests
 
+**Simple Evaluation:**
 ```python
 import requests
 
@@ -306,14 +435,64 @@ result = response.json()
 print(result['result'])  # "helloWorld"
 ```
 
+**Document Generation:**
+```python
+import requests
+import base64
+
+# Prepare Base64 encoded content
+script = base64.b64encode(b'@className => "User"; @namespace => "MyApp.Models";').decode()
+template = base64.b64encode(b'namespace @{namespace};\n\npublic class @{className}\n{\n}').decode()
+
+response = requests.post('http://localhost:5213/api/qik/generate', json={
+    'script': script,
+    'fragments': {
+        'classTemplate': template
+    },
+    'documents': {
+        'models/User.cs': '{classTemplate}'
+    },
+    'inputs': {
+        '@className': 'Customer'
+    },
+    'placeholderPrefix': '@{',
+    'placeholderSuffix': '}'
+})
+
+result = response.json()
+
+# Decode Base64 content
+for path, content in result['documents'].items():
+    decoded_content = base64.b64decode(content).decode()
+    print(f"{path}:\n{decoded_content}")
+```
+
 ### cURL
 
+**Simple Evaluation:**
 ```bash
 curl -X POST http://localhost:5213/api/qik/evaluate \
   -H "Content-Type: application/json" \
   -d '{
     "expression": "upperCase(@text)",
     "context": {"@text": "hello"}
+  }'
+```
+
+**Document Generation:**
+```bash
+curl -X POST http://localhost:5213/api/qik/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "script": "QGNsYXNzTmFtZSA9PiAiVXNlciI7IEBuYW1lc3BhY2UgPT4gIk15QXBwLk1vZGVscyI7",
+    "fragments": {
+      "classTemplate": "bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTtcblxucHVibGljIGNsYXNzIEB7Y2xhc3NOYW1lfVxue1xufQ=="
+    },
+    "documents": {
+      "models/User.cs": "{classTemplate}"
+    },
+    "placeholderPrefix": "@{",
+    "placeholderSuffix": "}"
   }'
 ```
 
