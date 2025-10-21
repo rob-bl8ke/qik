@@ -5,7 +5,8 @@
 Qik is a script-based template generation library built on ANTLR4 that provides a powerful syntax for defining variables, expressions, and conditional logic. It's designed to help developers generate dynamic text content with complex transformations and business logic.
 
 **NuGet Package**: `rob_bl8ke.Qik`  
-**Repository**: https://github.com/rob-bl8ke/Qik
+**Repository**: https://github.com/rob-bl8ke/Qik  
+**REST API**: Available in the `QikApi` project for HTTP-based integration
 
 ---
 
@@ -399,6 +400,52 @@ foreach (var widget in widgets)
     Console.WriteLine($"Type: {widget.Type}");
 }
 ```
+
+---
+
+## REST API Integration
+
+The Qik library is also available as a REST API through the `QikApi` project, providing HTTP endpoints for all Qik functionality.
+
+### Document Generation Endpoint
+
+**POST** `/api/qik/generate`
+
+The generate endpoint provides sophisticated document generation capabilities:
+
+```json
+{
+  "script": "QGNsYXNzTmFtZSA9PiAiVXNlciI7IEBuYW1lc3BhY2UgPT4gIk15QXBwLk1vZGVscyI7",
+  "fragments": {
+    "classTemplate": "bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTtcblxucHVibGljIGNsYXNzIEB7Y2xhc3NOYW1lfVxue1xufQ=="
+  },
+  "documents": {
+    "models/User.cs": "{classTemplate}"
+  },
+  "inputs": {
+    "@className": "Customer",
+    "@namespace": "MyApp.Domain"
+  },
+  "placeholderPrefix": "@{",
+  "placeholderSuffix": "}"
+}
+```
+
+#### Key Features:
+
+- **Base64 Content Encoding**: All content (script, fragments, generated documents) uses Base64 encoding for safe transport
+- **Fragment Composition**: Build documents by combining reusable fragments
+- **Configurable Placeholders**: Support any placeholder format (`@{var}`, `${var}`, `{{var}}`, etc.)
+- **Input Overrides**: Override script variables with request-specific values
+
+#### Other API Endpoints:
+
+- **POST** `/api/qik/interpret` - Execute complete Qik scripts
+- **POST** `/api/qik/evaluate` - Evaluate single expressions
+- **POST** `/api/qik/widgets` - Extract UI metadata for form generation
+- **GET** `/api/qik/functions` - Get function documentation
+
+For complete API documentation, see the `QikApi/README.md` file.
 
 ---
 

@@ -5,6 +5,7 @@ A comprehensive REST API that exposes the functionality of the [Qik template gen
 ## Features
 
 - **Script Interpretation**: Execute complete Qik scripts and retrieve all variable values
+- **Document Generation**: Generate multiple documents using fragments and configurable placeholders
 - **UI Widget Extraction**: Extract UI metadata from scripts for dynamic form generation
 - **Expression Evaluation**: Evaluate individual expressions with context variables
 - **Function Discovery**: Get documentation for all available Qik functions
@@ -60,7 +61,48 @@ Interprets a complete Qik script and returns all variable values.
 }
 ```
 
-### 2. Extract UI Widgets
+### 2. Generate Documents
+**POST** `/api/qik/generate`
+
+Generates multiple documents using Qik scripts, fragments, and configurable placeholder formats with Base64 encoded content.
+
+**Request Body:**
+```json
+{
+  "script": "QGNsYXNzTmFtZSA9PiAiVXNlciI7IEBuYW1lc3BhY2UgPT4gIk15QXBwLk1vZGVscyI7",
+  "fragments": {
+    "classTemplate": "bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTtcblxucHVibGljIGNsYXNzIEB7Y2xhc3NOYW1lfVxue1xufQ=="
+  },
+  "documents": {
+    "models/User.cs": "{classTemplate}"
+  },
+  "inputs": {
+    "@className": "Customer",
+    "@namespace": "MyApp.Domain"
+  },
+  "placeholderPrefix": "@{",
+  "placeholderSuffix": "}"
+}
+```
+
+**Response:**
+```json
+{
+  "documents": {
+    "models/User.cs": "bmFtZXNwYWNlIE15QXBwLkRvbWFpbjtcblxucHVibGljIGNsYXNzIEN1c3RvbWVyXG57XG59"
+  },
+  "success": true,
+  "errorMessage": null,
+  "metadata": {
+    "fragmentCount": 1,
+    "documentCount": 1,
+    "inputCount": 2,
+    "symbolCount": 2
+  }
+}
+```
+
+### 3. Extract UI Widgets
 **POST** `/api/qik/widgets`
 
 Extracts UI widget metadata from a Qik script for dynamic form generation.
@@ -88,7 +130,7 @@ Extracts UI widget metadata from a Qik script for dynamic form generation.
 }
 ```
 
-### 3. Evaluate Expression
+### 4. Evaluate Expression
 **POST** `/api/qik/evaluate`
 
 Evaluates a single expression with optional context variables.
@@ -112,7 +154,7 @@ Evaluates a single expression with optional context variables.
 }
 ```
 
-### 4. Get Available Functions
+### 5. Get Available Functions
 **GET** `/api/qik/functions`
 
 Returns documentation for all available Qik functions.
@@ -131,7 +173,7 @@ Returns documentation for all available Qik functions.
 ]
 ```
 
-### 5. Health Check
+### 6. Health Check
 **GET** `/api/qik/health`
 
 Returns the health status of the API.
@@ -147,7 +189,27 @@ Returns the health status of the API.
 
 ## Example Use Cases
 
-### 1. Code Generation
+### 1. Document Generation
+```bash
+curl -X POST https://localhost:5001/api/qik/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "script": "QGNsYXNzTmFtZSA9PiAiVXNlciI7IEBuYW1lc3BhY2UgPT4gIk15QXBwLk1vZGVscyI7",
+    "fragments": {
+      "classTemplate": "bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTtcblxucHVibGljIGNsYXNzIEB7Y2xhc3NOYW1lfVxue1xufQ=="
+    },
+    "documents": {
+      "models/User.cs": "{classTemplate}"
+    },
+    "inputs": {
+      "@className": "Customer"
+    },
+    "placeholderPrefix": "@{",
+    "placeholderSuffix": "}"
+  }'
+```
+
+### 2. Code Generation
 ```bash
 curl -X POST https://localhost:5001/api/qik/interpret \
   -H "Content-Type: application/json" \
@@ -156,7 +218,7 @@ curl -X POST https://localhost:5001/api/qik/interpret \
   }'
 ```
 
-### 2. Dynamic Form Generation
+### 3. Dynamic Form Generation
 ```bash
 curl -X POST https://localhost:5001/api/qik/widgets \
   -H "Content-Type: application/json" \
@@ -165,7 +227,7 @@ curl -X POST https://localhost:5001/api/qik/widgets \
   }'
 ```
 
-### 3. Text Transformation
+### 4. Text Transformation
 ```bash
 curl -X POST https://localhost:5001/api/qik/evaluate \
   -H "Content-Type: application/json" \
@@ -177,7 +239,7 @@ curl -X POST https://localhost:5001/api/qik/evaluate \
   }'
 ```
 
-### 4. URL Builder
+### 5. URL Builder
 ```bash
 curl -X POST https://localhost:5001/api/qik/interpret \
   -H "Content-Type: application/json" \
@@ -237,6 +299,24 @@ Qik provides many built-in functions:
 - `TAB` - Tab character
 - `SPACE` - Space character
 - `NEWLINE` - Newline character
+
+### Configurable Placeholders
+The generate endpoint supports configurable placeholder formats through `placeholderPrefix` and `placeholderSuffix`:
+
+**Default format (@{variable}):**
+```json
+{
+  "placeholderPrefix": "@{",
+  "placeholderSuffix": "}"
+}
+```
+
+**Custom formats:**
+- `${variable}` - Use `"${", "}"`
+- `{{variable}}` - Use `"{{", "}}"`
+- `[[variable]]` - Use `"[[", "]]"`
+
+This allows integration with existing template systems that use different placeholder conventions.
 
 ## Available Functions
 

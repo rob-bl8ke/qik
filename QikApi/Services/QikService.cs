@@ -196,4 +196,169 @@ public class QikService : IQikService
             new() { Name = "urlEncode", Category = "Encoding", Signature = "urlEncode(text)", Description = "Encodes text for safe URL use", Example = "urlEncode(\"hello world\") // \"hello%20world\"" }
         };
     }
+
+    public GenerateResponse Generate(GenerateRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Script))
+            {
+                return new GenerateResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Script cannot be empty"
+                };
+            }
+
+            // Decode the base64 script
+            string decodedScript;
+            try
+            {
+                var scriptBytes = Convert.FromBase64String(request.Script);
+                decodedScript = System.Text.Encoding.UTF8.GetString(scriptBytes);
+            }
+            catch (Exception ex)
+            {
+                return new GenerateResponse
+                {
+                    Success = false,
+                    ErrorMessage = $"Invalid base64 script: {ex.Message}"
+                };
+            }
+
+            // Interpret the script to get terminal with all variables
+            var terminal = _interpreter.Interpret(_functionFactory, decodedScript);
+
+            // Apply input variables if provided
+            if (request.Inputs != null && request.Inputs.Any())
+            {
+                foreach (var input in request.Inputs)
+                {
+                    try
+                    {
+                        terminal.SetValue(input.Key, input.Value);
+                    }
+                    catch (KeyNotFoundException)
+                    {
+                        // Input key doesn't exist as an InputSymbol in the script
+                        continue;
+                    }
+                }
+            }
+
+            // Step 1: Process fragments - decode base64 content and replace placeholders with script values
+            var processedFragments = new Dictionary<string, string>();
+            if (request.Fragments != null && request.Fragments.Any())
+            {
+                foreach (var fragment in request.Fragments)
+                {
+                    try
+                    {
+                        // Decode base64 fragment content
+                        var fragmentBytes = Convert.FromBase64String(fragment.Value);
+                        var fragmentContent = System.Text.Encoding.UTF8.GetString(fragmentBytes);
+
+                        // Replace placeholders with values from the interpreted script
+                        var processedContent = ReplacePlaceholders(fragmentContent, terminal, request.PlaceholderPrefix, request.PlaceholderSuffix);
+                        processedFragments[fragment.Key] = processedContent;
+                    }
+                    catch (Exception ex)
+                    {
+                        return new GenerateResponse
+                        {
+                            Success = false,
+                            ErrorMessage = $"Error processing fragment '{fragment.Key}': {ex.Message}"
+                        };
+                    }
+                }
+            }
+
+            // Step 2: Build documents by combining fragments
+            var resultDocuments = new Dictionary<string, string>();
+            if (request.Documents != null && request.Documents.Any())
+            {
+                foreach (var document in request.Documents)
+                {
+                    try
+                    {
+                        // The document value contains fragment keys that need to be resolved
+                        var documentContent = BuildDocumentFromFragments(document.Value, processedFragments);
+                        
+                        // Encode the document content as Base64
+                        var contentBytes = System.Text.Encoding.UTF8.GetBytes(documentContent);
+                        var base64Content = Convert.ToBase64String(contentBytes);
+                        
+                        resultDocuments[document.Key] = base64Content;
+                    }
+                    catch (Exception ex)
+                    {
+                        return new GenerateResponse
+                        {
+                            Success = false,
+                            ErrorMessage = $"Error building document '{document.Key}': {ex.Message}"
+                        };
+                    }
+                }
+            }
+
+            return new GenerateResponse
+            {
+                Success = true,
+                Documents = resultDocuments,
+                Metadata = new Dictionary<string, object>
+                {
+                    { "fragmentCount", request.Fragments?.Count ?? 0 },
+                    { "documentCount", resultDocuments.Count },
+                    { "inputCount", request.Inputs?.Count ?? 0 },
+                    { "symbolCount", terminal.Symbols?.Length ?? 0 }
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new GenerateResponse
+            {
+                Success = false,
+                ErrorMessage = ex.Message
+            };
+        }
+    }
+
+    private string ReplacePlaceholders(string content, ISymbolTerminal terminal, string prefix, string suffix)
+    {
+        var result = content;
+        
+        // Replace all symbols found in the terminal using configurable prefix/suffix format
+        foreach (var symbol in terminal.Symbols)
+        {
+            var value = terminal.GetValue(symbol);
+            if (value != null)
+            {
+                // Replace {prefix}symbolName{suffix} pattern
+                var symbolWithoutAt = symbol.StartsWith("@") ? symbol.Substring(1) : symbol;
+                result = result.Replace(prefix + symbolWithoutAt + suffix, value);
+                
+                // Also replace {prefix}@symbolName{suffix} pattern in case the symbol already has @ prefix
+                result = result.Replace(prefix + symbol + suffix, value);
+            }
+        }
+
+        return result;
+    }
+
+    private string BuildDocumentFromFragments(string documentTemplate, Dictionary<string, string> fragments)
+    {
+        var result = documentTemplate;
+
+        // The document template contains fragment keys that need to be replaced with fragment content
+        foreach (var fragment in fragments)
+        {
+            // Replace fragment placeholders in various formats
+            result = result.Replace("{" + fragment.Key + "}", fragment.Value);
+            result = result.Replace("{{" + fragment.Key + "}}", fragment.Value);
+            result = result.Replace(fragment.Key, fragment.Value);
+        }
+
+        return result;
+    }
 }

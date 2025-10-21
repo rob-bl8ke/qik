@@ -40,6 +40,13 @@ QikApi/
    - Support variable overrides
    - Full error handling
 
+✅ **POST /api/qik/generate**
+   - Generate multiple documents from fragments
+   - Base64 encoded content workflow
+   - Configurable placeholder formats
+   - Fragment composition system
+   - Input variable overrides
+
 ✅ **POST /api/qik/evaluate**
    - Evaluate single expressions
    - Support context variables
@@ -137,27 +144,33 @@ The API exposes all Qik functionality including:
 
 ## Example Usage Scenarios
 
-1. **Text Transformation Service**
+1. **Document Generation Service**
+   - Generate multiple files from templates
+   - Fragment-based composition system
+   - Base64 encoded content transport
+   - Configurable placeholder formats
+
+2. **Text Transformation Service**
    - Transform user input in real-time
    - Convert naming conventions
    - Format text for different contexts
 
-2. **Code Generator API**
+3. **Code Generator API**
    - Generate code templates
    - Create formatted code structures
    - Dynamic code generation based on inputs
 
-3. **Dynamic Form Builder**
+4. **Dynamic Form Builder**
    - Extract form metadata from scripts
    - Build UI components dynamically
    - Support custom input types
 
-4. **URL Builder Service**
+5. **URL Builder Service**
    - Create safe, encoded URLs
    - Handle query parameters
    - Build API endpoints
 
-5. **Data Encoder/Decoder**
+6. **Data Encoder/Decoder**
    - Transform data between formats
    - Handle multiple encoding types
    - Chain transformations
@@ -330,7 +343,7 @@ Key configuration options in `appsettings.json`:
 
 A complete, well-documented REST API that makes the Qik template generation library accessible via HTTP. The API includes:
 
-- 5 endpoints covering all Qik functionality
+- 6 endpoints covering all Qik functionality
 - Comprehensive documentation (4 files)
 - Example requests for testing
 - Swagger UI for interactive exploration
@@ -338,4 +351,4 @@ A complete, well-documented REST API that makes the Qik template generation libr
 - Proper error handling and logging
 - Ready for production deployment
 
-The API successfully exposes all capabilities described in the technical guide through simple, RESTful endpoints that can be easily consumed by any HTTP client.
+The API successfully exposes all capabilities described in the technical guide through simple, RESTful endpoints that can be easily consumed by any HTTP client. The generate endpoint provides sophisticated document generation capabilities with Base64 content encoding and configurable placeholder formats for maximum flexibility.

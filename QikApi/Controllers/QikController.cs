@@ -126,6 +126,36 @@ public class QikController : ControllerBase
     }
 
     /// <summary>
+    /// Generates documents using a Qik script, definition template, and fragment variables with configurable placeholder format
+    /// </summary>
+    /// <param name="request">The generation request containing script, definition, fragments, and placeholder format configuration</param>
+    /// <returns>Dictionary of generated documents with Base64 encoded content</returns>
+    /// <response code="200">Returns the generated documents with Base64 encoded content</response>
+    /// <response code="400">If the request is invalid</response>
+    [HttpPost("generate")]
+    [ProducesResponseType(typeof(GenerateResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public ActionResult<GenerateResponse> Generate([FromBody] GenerateRequest request)
+    {
+        _logger.LogInformation("Generating output from Qik script and definition");
+
+        if (string.IsNullOrWhiteSpace(request.Script))
+        {
+            return BadRequest(new { error = "Script cannot be empty" });
+        }
+
+        var response = _qikService.Generate(request);
+
+        if (!response.Success)
+        {
+            _logger.LogWarning("Generation failed: {ErrorMessage}", response.ErrorMessage);
+            return BadRequest(response);
+        }
+
+        return Ok(response);
+    }
+
+    /// <summary>
     /// Health check endpoint
     /// </summary>
     /// <returns>API health status</returns>

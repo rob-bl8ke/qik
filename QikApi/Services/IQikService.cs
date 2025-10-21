@@ -31,4 +31,9 @@ public interface IQikService
     /// Gets information about all available functions
     /// </summary>
     List<FunctionInfoDto> GetAvailableFunctions();
+
+    /// <summary>
+    /// Generates output using a Qik script, definition, and fragments
+    /// </summary>
+    GenerateResponse Generate(GenerateRequest request);
 }
