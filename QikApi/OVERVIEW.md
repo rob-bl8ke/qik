@@ -16,7 +16,24 @@ POST /api/qik/evaluate
 → "HELLOWORLD"
 ```
 
-### 2. Generate Code
+### 2. Generate Documents
+```http
+POST /api/qik/generate
+{
+  "script": "QGNsYXNzTmFtZSA9PiAiVXNlciI7IEBuYW1lc3BhY2UgPT4gIk15QXBwLk1vZGVscyI7",
+  "fragments": {
+    "classTemplate": "bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTtcblxucHVibGljIGNsYXNzIEB7Y2xhc3NOYW1lfVxue1xufQ=="
+  },
+  "documents": {
+    "models/User.cs": "{classTemplate}"
+  },
+  "placeholderPrefix": "@{",
+  "placeholderSuffix": "}"
+}
+→ { "documents": { "models/User.cs": "bmFtZXNwYWNlIE15QXBwLk1vZGVscztcblxucHVibGljIGNsYXNzIFVzZXJcbntcbn0=" } }
+```
+
+### 3. Generate Code
 ```http
 POST /api/qik/interpret
 {
@@ -25,7 +42,7 @@ POST /api/qik/interpret
 → { "@class": "UserService", "@code": "public class UserService { }" }
 ```
 
-### 3. Build Forms Dynamically
+### 4. Build Forms Dynamically
 ```http
 POST /api/qik/widgets
 {
@@ -34,7 +51,7 @@ POST /api/qik/widgets
 → [{ "variableName": "@name", "title": "Name", "type": "text", "defaultValue": "Guest" }]
 ```
 
-### 4. Encode/Decode Data
+### 5. Encode/Decode Data
 ```http
 POST /api/qik/evaluate
 {
@@ -44,7 +61,7 @@ POST /api/qik/evaluate
 → "aGVsbG8lMjB3b3JsZA=="
 ```
 
-### 5. Generate Dynamic Content
+### 6. Generate Dynamic Content
 ```http
 POST /api/qik/evaluate
 {
@@ -76,6 +93,7 @@ curl -X POST http://localhost:5213/api/qik/evaluate \
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
 | POST | `/api/qik/interpret` | Execute complete Qik scripts |
+| POST | `/api/qik/generate` | Generate documents from fragments with configurable placeholders |
 | POST | `/api/qik/evaluate` | Evaluate single expressions |
 | POST | `/api/qik/widgets` | Extract UI widget metadata |
 | GET | `/api/qik/functions` | List all available functions |
@@ -107,25 +125,29 @@ curl -X POST http://localhost:5213/api/qik/evaluate \
 
 ## 💡 Use Cases
 
-### 1. Text Transformation Service
+### 1. Document Generation Service
+Generate multiple files from templates using fragments and configurable placeholders with Base64 content encoding.
+
+### 2. Text Transformation Service
 Transform user input on-the-fly for your application.
 
-### 2. Code Generator
+### 3. Code Generator
 Generate code templates, class definitions, configuration files.
 
-### 3. Dynamic Form Builder
+### 4. Dynamic Form Builder
 Extract form metadata and build UIs dynamically.
 
-### 4. URL Builder
+### 5. URL Builder
 Create safe, encoded URLs with proper query parameters.
 
-### 5. Data Encoder/Decoder
+### 6. Data Encoder/Decoder
 Transform data between Base64, URL encoding, HTML entities.
 
 ## 🔌 Integration Examples
 
 ### JavaScript
 ```javascript
+// Simple evaluation
 const response = await fetch('http://localhost:5213/api/qik/evaluate', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -136,24 +158,81 @@ const response = await fetch('http://localhost:5213/api/qik/evaluate', {
 });
 const data = await response.json();
 console.log(data.result); // "helloWorld"
+
+// Document generation
+const generateResponse = await fetch('http://localhost:5213/api/qik/generate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    script: btoa('@className => "User"; @namespace => "MyApp.Models";'),
+    fragments: {
+      classTemplate: btoa('namespace @{namespace};\n\npublic class @{className}\n{\n}')
+    },
+    documents: {
+      'models/User.cs': '{classTemplate}'
+    },
+    placeholderPrefix: '@{',
+    placeholderSuffix: '}'
+  })
+});
+const generateData = await generateResponse.json();
+// Decode Base64 content
+Object.entries(generateData.documents).forEach(([path, content]) => {
+  console.log(`${path}:\n${atob(content)}`);
+});
 ```
 
 ### C#
 ```csharp
 var client = new HttpClient { BaseAddress = new Uri("http://localhost:5213") };
+
+// Simple evaluation
 var request = new { expression = "upperCase(@name)", context = new { name = "john" } };
 var response = await client.PostAsJsonAsync("/api/qik/evaluate", request);
 var result = await response.Content.ReadFromJsonAsync<EvaluateExpressionResponse>();
+
+// Document generation
+var generateRequest = new {
+    script = Convert.ToBase64String(Encoding.UTF8.GetBytes("@className => \"User\";")),
+    fragments = new Dictionary<string, string> {
+        ["classTemplate"] = Convert.ToBase64String(Encoding.UTF8.GetBytes("public class @{className} { }"))
+    },
+    documents = new Dictionary<string, string> {
+        ["User.cs"] = "{classTemplate}"
+    },
+    placeholderPrefix = "@{",
+    placeholderSuffix = "}"
+};
+var generateResponse = await client.PostAsJsonAsync("/api/qik/generate", generateRequest);
+var generateResult = await generateResponse.Content.ReadFromJsonAsync<GenerateResponse>();
 ```
 
 ### Python
 ```python
 import requests
+import base64
+
+# Simple evaluation
 result = requests.post('http://localhost:5213/api/qik/evaluate', json={
     'expression': 'camelCase(@input)',
     'context': {'@input': 'hello world'}
 }).json()
 print(result['result'])  # "helloWorld"
+
+# Document generation
+script = base64.b64encode(b'@className => "User";').decode()
+template = base64.b64encode(b'public class @{className} { }').decode()
+
+generate_result = requests.post('http://localhost:5213/api/qik/generate', json={
+    'script': script,
+    'fragments': {'classTemplate': template},
+    'documents': {'User.cs': '{classTemplate}'},
+    'placeholderPrefix': '@{',
+    'placeholderSuffix': '}'
+}).json()
+
+for path, content in generate_result['documents'].items():
+    print(f"{path}:\n{base64.b64decode(content).decode()}")
 ```
 
 ## 🏗️ Architecture
