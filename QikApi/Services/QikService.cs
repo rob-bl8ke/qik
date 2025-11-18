@@ -83,10 +83,26 @@ public class QikService : IQikService
                 };
             }
 
-            var widgets = _widgetFactory.BuildFromScript(request.Script);
+            // Decode the base64 script
+            string decodedScript;
+            try
+            {
+                var scriptBytes = Convert.FromBase64String(request.Script);
+                decodedScript = System.Text.Encoding.UTF8.GetString(scriptBytes);
+            }
+            catch (Exception ex)
+            {
+                return new GetWidgetsResponse
+                {
+                    Success = false,
+                    ErrorMessage = $"Invalid base64 script: {ex.Message}"
+                };
+            }
+
+            var widgets = _widgetFactory.BuildFromScript(decodedScript);
             
             // Also interpret the script to get default values
-            var terminal = _interpreter.Interpret(_functionFactory, request.Script);
+            var terminal = _interpreter.Interpret(_functionFactory, decodedScript);
 
             var widgetDtos = widgets.Select(w => new UiWidgetDto
             {
