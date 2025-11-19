@@ -8,6 +8,29 @@
 
 ## Request Structure
 
+
+#### Request Structure
+
+By default (no `contentEncoding` parameter):
+```json
+{
+  "script": "plain-text-qik-script (required)",
+  "fragments": {
+    "fragmentKey1": "plain-text-content",
+    "fragmentKey2": "plain-text-content"
+  },
+  "documents": {
+    "documentPath1": "fragment-references",
+    "documentPath2": "fragment-references"
+  },
+  "inputs": {
+    "@variable1": "value1",
+    "@variable2": "value2"
+  }
+}
+```
+
+If `?contentEncoding=base64` is specified, all script and fragment values must be Base64 encoded:
 ```json
 {
   "script": "base64-encoded-qik-script (required)",
@@ -28,6 +51,10 @@
 
 ## Response Structure
 
+
+#### Response Structure
+
+If `contentEncoding=base64` is set, all document values are Base64 encoded:
 ```json
 {
   "success": true,
@@ -42,6 +69,17 @@
     "inputCount": 2,
     "symbolCount": 4
   }
+}
+```
+If not set, document values are plain text:
+```json
+{
+  "success": true,
+  "documents": {
+    "src/models/User.cs": "public class User { }",
+    "src/controllers/UserController.cs": "public class UserController { }"
+  },
+  ...
 }
 ```
 
@@ -66,20 +104,65 @@
 
 ## How It Works
 
-1. **Decode Script**: Decodes the base64 Qik script to establish variable context
-2. **Interpret Script**: Parses the decoded Qik script and applies any input variables
+
+1. **Decode Script**: If `contentEncoding=base64`, decodes the Base64 Qik script; otherwise, uses plain text.
+2. **Interpret Script**: Parses the Qik script and applies any input variables.
 3. **Process Fragments**: 
-   - Decodes base64 fragment content
-   - Replaces placeholders (`@{variable}`) with values from interpreted script variables
+  - If `contentEncoding=base64`, decodes Base64 fragment content; otherwise, uses plain text.
+  - Replaces placeholders (`@{variable}`) with values from interpreted script variables.
 4. **Build Documents**: 
-   - Combines processed fragments based on document template references
-   - Each document specifies which fragments to include and how to combine them
-5. **Return Results**: Returns generated documents with file paths as keys and Base64 encoded content as values
+  - Combines processed fragments based on document template references.
+  - Each document specifies which fragments to include and how to combine them.
+5. **Return Results**: 
+  - If `contentEncoding=base64`, returns generated documents as Base64 encoded strings.
+  - Otherwise, returns plain text content.
 
 ## Example Usage
 
+
+### Example Usage
+
+#### Plain Text (default)
 ```http
 POST /api/qik/generate
+Content-Type: application/json
+
+{
+  "script": "@name => \"John\"; @age => \"30\";",
+  "fragments": {
+    "classTemplate": "public class @{name} { }",
+    "greeting": "Hello @{name}, you are @{age} years old!"
+  },
+  "documents": {
+    "src/models/Person.cs": "{classTemplate}",
+    "output/greeting.txt": "{greeting}"
+  },
+  "inputs": {
+    "@name": "Jane",
+    "@age": "25"
+  }
+}
+```
+**Response:**
+```json
+{
+  "success": true,
+  "documents": {
+    "src/models/Person.cs": "public class Jane { }",
+    "output/greeting.txt": "Hello Jane, you are 25 years old!"
+  },
+  "metadata": {
+    "fragmentCount": 2,
+    "documentCount": 2,
+    "inputCount": 2,
+    "symbolCount": 2
+  }
+}
+```
+
+#### Base64 Encoded
+```http
+POST /api/qik/generate?contentEncoding=base64
 Content-Type: application/json
 
 {
@@ -98,7 +181,6 @@ Content-Type: application/json
   }
 }
 ```
-
 **Response:**
 ```json
 {

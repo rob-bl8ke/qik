@@ -1,3 +1,27 @@
+
+## Encoding Support & contentEncoding Parameter
+
+The Qik REST API supports both plain text and Base64-encoded input/output for most endpoints. Use the optional `contentEncoding` query parameter to specify encoding:
+
+- **Plain Text (default):**
+    - Send/receive all fields as UTF-8 strings.
+    - No `contentEncoding` parameter needed.
+- **Base64:**
+    - Set `?contentEncoding=base64` in the query string.
+    - All string fields in the request and response will be Base64-encoded.
+    - Useful for binary-safe transport, non-UTF8 content, or when embedding templates/code.
+
+**Endpoints supporting `contentEncoding`:**
+- `/api/qik/generate`
+- `/api/qik/interpret`
+- `/api/qik/widgets`
+
+**Endpoints NOT supporting `contentEncoding`:**
+- `/api/qik/evaluate` (always plain text)
+- `/api/qik/functions`, `/api/qik/health`
+
+If `contentEncoding` is omitted or set to anything other than `base64`, plain text is used.
+
 # Qik Technical Guide
 
 ## Overview
@@ -407,45 +431,89 @@ foreach (var widget in widgets)
 
 The Qik library is also available as a REST API through the `QikApi` project, providing HTTP endpoints for all Qik functionality.
 
+
 ### Document Generation Endpoint
 
 **POST** `/api/qik/generate`
 
-The generate endpoint provides sophisticated document generation capabilities:
+The generate endpoint provides sophisticated document generation capabilities.
 
+**Plain Text (default):**
 ```json
 {
-  "script": "QGNsYXNzTmFtZSA9PiAiVXNlciI7IEBuYW1lc3BhY2UgPT4gIk15QXBwLk1vZGVscyI7",
-  "fragments": {
-    "classTemplate": "bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTtcblxucHVibGljIGNsYXNzIEB7Y2xhc3NOYW1lfVxue1xufQ=="
-  },
-  "documents": {
-    "models/User.cs": "{classTemplate}"
-  },
-  "inputs": {
-    "@className": "Customer",
-    "@namespace": "MyApp.Domain"
-  },
-  "placeholderPrefix": "@{",
-  "placeholderSuffix": "}"
+    "script": "@className => \"User\"; @namespace => \"MyApp.Domain\";",
+    "fragments": {
+        "classTemplate": "namespace @{namespace};\n\npublic class @{className}\n{\n}\n"
+    },
+    "documents": {
+        "models/User.cs": "{classTemplate}"
+    },
+    "inputs": {
+        "@className": "Customer",
+        "@namespace": "MyApp.Domain"
+    },
+    "placeholderPrefix": "@{",
+    "placeholderSuffix": "}"
 }
 ```
 
+**Base64:**
+```http
+POST /api/qik/generate?contentEncoding=base64
+{
+    "script": "QGNsYXNzTmFtZSA9PiAiVXNlciI7IEBuYW1lc3BhY2UgPT4gIk15QXBwLk1vZGVscyI7",
+    "fragments": {
+        "classTemplate": "bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTtcblxucHVibGljIGNsYXNzIEB7Y2xhc3NOYW1lfVxue1xufQ=="
+    },
+    "documents": {
+        "models/User.cs": "{classTemplate}"
+    },
+    "inputs": {
+        "@className": "Customer",
+        "@namespace": "MyApp.Domain"
+    },
+    "placeholderPrefix": "@{",
+    "placeholderSuffix": "}"
+}
+```
+
+
 #### Key Features:
 
-- **Base64 Content Encoding**: All content (script, fragments, generated documents) uses Base64 encoding for safe transport
+- **Flexible Content Encoding**: Supports both plain text (default) and Base64 for all content fields. Use `?contentEncoding=base64` for Base64 workflows.
 - **Fragment Composition**: Build documents by combining reusable fragments
 - **Configurable Placeholders**: Support any placeholder format (`@{var}`, `${var}`, `{{var}}`, etc.)
 - **Input Overrides**: Override script variables with request-specific values
 
+
 #### Other API Endpoints:
 
-- **POST** `/api/qik/interpret` - Execute complete Qik scripts
-- **POST** `/api/qik/evaluate` - Evaluate single expressions
-- **POST** `/api/qik/widgets` - Extract UI metadata for form generation
+- **POST** `/api/qik/interpret` - Execute complete Qik scripts (supports `contentEncoding`)
+- **POST** `/api/qik/evaluate` - Evaluate single expressions (plain text only)
+- **POST** `/api/qik/widgets` - Extract UI metadata for form generation (supports `contentEncoding`)
 - **GET** `/api/qik/functions` - Get function documentation
 
 For complete API documentation, see the `QikApi/README.md` file.
+
+---
+
+#### Example: Using contentEncoding with /interpret and /widgets
+
+**/api/qik/interpret (Base64):**
+```http
+POST /api/qik/interpret?contentEncoding=base64
+{
+    "script": "QG5hbWUgPT4gXCJBbGljZVwiOyBAbmFtZSA9PiBcIkhlbGxvLCBcIiArIEBuYW1lICsgXCIhXCI7"
+}
+```
+
+**/api/qik/widgets (Base64):**
+```http
+POST /api/qik/widgets?contentEncoding=base64
+{
+    "script": "W3RpdGxlID0gXCJOYW1lXCIsIHR5cGUgPSBcInRleHRcIl0gQG5hbWUgPT4gXCJHdWVzdFwiOw=="
+}
+```
 
 ---
 
