@@ -39,4 +39,9 @@ public class GenerateRequest
     /// Suffix for placeholder variables (default: "}")
     /// </summary>
     public string PlaceholderSuffix { get; set; } = "}";
+
+    /// <summary>
+    /// Optional content encoding format. If "base64", the script and fragments will be decoded from Base64. Otherwise, plain text is expected.
+    /// </summary>
+    public string? ContentEncoding { get; set; }
 }

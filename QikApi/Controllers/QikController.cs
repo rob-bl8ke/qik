@@ -25,13 +25,16 @@ public class QikController : ControllerBase
     /// Interprets a Qik script and returns all variable values
     /// </summary>
     /// <param name="request">The interpretation request containing the script</param>
+    /// <param name="contentEncoding">Optional content encoding ("base64" or plain text)</param>
     /// <returns>Interpretation results with all variable values</returns>
     /// <response code="200">Returns the interpretation results</response>
     /// <response code="400">If the request is invalid</response>
     [HttpPost("interpret")]
     [ProducesResponseType(typeof(InterpretResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public ActionResult<InterpretResponse> Interpret([FromBody] InterpretRequest request)
+    public ActionResult<InterpretResponse> Interpret(
+        [FromBody] InterpretRequest request,
+        [FromQuery] string? contentEncoding = null)
     {
         _logger.LogInformation("Interpreting Qik script");
 
@@ -39,6 +42,9 @@ public class QikController : ControllerBase
         {
             return BadRequest(new { error = "Script cannot be empty" });
         }
+
+        // Pass the content encoding to the request
+        request.ContentEncoding = contentEncoding;
 
         var response = _qikService.Interpret(request);
 
@@ -55,13 +61,16 @@ public class QikController : ControllerBase
     /// Extracts UI widgets from a Qik script
     /// </summary>
     /// <param name="request">The request containing the script</param>
+    /// <param name="contentEncoding">Optional content encoding ("base64" or plain text)</param>
     /// <returns>List of UI widgets found in the script</returns>
     /// <response code="200">Returns the extracted UI widgets</response>
     /// <response code="400">If the request is invalid</response>
     [HttpPost("widgets")]
     [ProducesResponseType(typeof(GetWidgetsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public ActionResult<GetWidgetsResponse> GetWidgets([FromBody] GetWidgetsRequest request)
+    public ActionResult<GetWidgetsResponse> GetWidgets(
+        [FromBody] GetWidgetsRequest request,
+        [FromQuery] string? contentEncoding = null)
     {
         _logger.LogInformation("Extracting UI widgets from Qik script");
 
@@ -69,6 +78,9 @@ public class QikController : ControllerBase
         {
             return BadRequest(new { error = "Script cannot be empty" });
         }
+
+        // Pass the content encoding to the request
+        request.ContentEncoding = contentEncoding;
 
         var response = _qikService.GetWidgets(request);
 
@@ -129,13 +141,16 @@ public class QikController : ControllerBase
     /// Generates documents using a Qik script, definition template, and fragment variables with configurable placeholder format
     /// </summary>
     /// <param name="request">The generation request containing script, definition, fragments, and placeholder format configuration</param>
+    /// <param name="contentEncoding">Optional content encoding ("base64" or plain text)</param>
     /// <returns>Dictionary of generated documents with Base64 encoded content</returns>
     /// <response code="200">Returns the generated documents with Base64 encoded content</response>
     /// <response code="400">If the request is invalid</response>
     [HttpPost("generate")]
     [ProducesResponseType(typeof(GenerateResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public ActionResult<GenerateResponse> Generate([FromBody] GenerateRequest request)
+    public ActionResult<GenerateResponse> Generate(
+        [FromBody] GenerateRequest request,
+        [FromQuery] string? contentEncoding = null)
     {
         _logger.LogInformation("Generating output from Qik script and definition");
 
@@ -143,6 +158,9 @@ public class QikController : ControllerBase
         {
             return BadRequest(new { error = "Script cannot be empty" });
         }
+
+        // Pass the content encoding to the request
+        request.ContentEncoding = contentEncoding;
 
         var response = _qikService.Generate(request);
 

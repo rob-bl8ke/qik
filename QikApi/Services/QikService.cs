@@ -34,7 +34,16 @@ public class QikService : IQikService
                 };
             }
 
-            var terminal = _interpreter.Interpret(_functionFactory, request.Script);
+            // Decode script if Base64 encoded
+            var script = request.Script;
+            if (!string.IsNullOrEmpty(request.ContentEncoding) && 
+                request.ContentEncoding.Equals("base64", StringComparison.OrdinalIgnoreCase))
+            {
+                var scriptBytes = Convert.FromBase64String(request.Script);
+                script = System.Text.Encoding.UTF8.GetString(scriptBytes);
+            }
+
+            var terminal = _interpreter.Interpret(_functionFactory, script);
 
             // Apply any provided variable values
             if (request.Variables != null)
@@ -83,20 +92,30 @@ public class QikService : IQikService
                 };
             }
 
-            // Decode the base64 script
             string decodedScript;
-            try
+            
+            // Check if content encoding is Base64
+            if (string.Equals(request.ContentEncoding, "base64", StringComparison.OrdinalIgnoreCase))
             {
-                var scriptBytes = Convert.FromBase64String(request.Script);
-                decodedScript = System.Text.Encoding.UTF8.GetString(scriptBytes);
-            }
-            catch (Exception ex)
-            {
-                return new GetWidgetsResponse
+                // Decode the base64 script
+                try
                 {
-                    Success = false,
-                    ErrorMessage = $"Invalid base64 script: {ex.Message}"
-                };
+                    var scriptBytes = Convert.FromBase64String(request.Script);
+                    decodedScript = System.Text.Encoding.UTF8.GetString(scriptBytes);
+                }
+                catch (Exception ex)
+                {
+                    return new GetWidgetsResponse
+                    {
+                        Success = false,
+                        ErrorMessage = $"Invalid base64 script: {ex.Message}"
+                    };
+                }
+            }
+            else
+            {
+                // Use plain text script as-is
+                decodedScript = request.Script;
             }
 
             var widgets = _widgetFactory.BuildFromScript(decodedScript);
@@ -226,20 +245,30 @@ public class QikService : IQikService
                 };
             }
 
-            // Decode the base64 script
             string decodedScript;
-            try
+            
+            // Check if content encoding is Base64
+            if (string.Equals(request.ContentEncoding, "base64", StringComparison.OrdinalIgnoreCase))
             {
-                var scriptBytes = Convert.FromBase64String(request.Script);
-                decodedScript = System.Text.Encoding.UTF8.GetString(scriptBytes);
-            }
-            catch (Exception ex)
-            {
-                return new GenerateResponse
+                // Decode the base64 script
+                try
                 {
-                    Success = false,
-                    ErrorMessage = $"Invalid base64 script: {ex.Message}"
-                };
+                    var scriptBytes = Convert.FromBase64String(request.Script);
+                    decodedScript = System.Text.Encoding.UTF8.GetString(scriptBytes);
+                }
+                catch (Exception ex)
+                {
+                    return new GenerateResponse
+                    {
+                        Success = false,
+                        ErrorMessage = $"Invalid base64 script: {ex.Message}"
+                    };
+                }
+            }
+            else
+            {
+                // Use plain text script as-is
+                decodedScript = request.Script;
             }
 
             // Interpret the script to get terminal with all variables
@@ -270,9 +299,20 @@ public class QikService : IQikService
                 {
                     try
                     {
-                        // Decode base64 fragment content
-                        var fragmentBytes = Convert.FromBase64String(fragment.Value);
-                        var fragmentContent = System.Text.Encoding.UTF8.GetString(fragmentBytes);
+                        string fragmentContent;
+                        
+                        // Check if content encoding is Base64
+                        if (string.Equals(request.ContentEncoding, "base64", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Decode base64 fragment content
+                            var fragmentBytes = Convert.FromBase64String(fragment.Value);
+                            fragmentContent = System.Text.Encoding.UTF8.GetString(fragmentBytes);
+                        }
+                        else
+                        {
+                            // Use plain text fragment as-is
+                            fragmentContent = fragment.Value;
+                        }
 
                         // Replace placeholders with values from the interpreted script
                         var processedContent = ReplacePlaceholders(fragmentContent, terminal, request.PlaceholderPrefix, request.PlaceholderSuffix);
@@ -300,11 +340,19 @@ public class QikService : IQikService
                         // The document value contains fragment keys that need to be resolved
                         var documentContent = BuildDocumentFromFragments(document.Value, processedFragments);
                         
-                        // Encode the document content as Base64
-                        var contentBytes = System.Text.Encoding.UTF8.GetBytes(documentContent);
-                        var base64Content = Convert.ToBase64String(contentBytes);
-                        
-                        resultDocuments[document.Key] = base64Content;
+                        // Check if content encoding is Base64
+                        if (string.Equals(request.ContentEncoding, "base64", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Encode the document content as Base64
+                            var contentBytes = System.Text.Encoding.UTF8.GetBytes(documentContent);
+                            var base64Content = Convert.ToBase64String(contentBytes);
+                            resultDocuments[document.Key] = base64Content;
+                        }
+                        else
+                        {
+                            // Return plain text content
+                            resultDocuments[document.Key] = documentContent;
+                        }
                     }
                     catch (Exception ex)
                     {

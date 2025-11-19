@@ -14,4 +14,9 @@ public class InterpretRequest
     /// Optional variable values to set before interpretation
     /// </summary>
     public Dictionary<string, string>? Variables { get; set; }
+
+    /// <summary>
+    /// Optional content encoding (e.g., "base64"). If not specified, assumes plain text.
+    /// </summary>
+    public string? ContentEncoding { get; set; }
 }

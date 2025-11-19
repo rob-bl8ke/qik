@@ -93,6 +93,33 @@
       }
     },
     {
+      "name": "Interpret Script - Base64 Encoded",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"script\": \"QG5hbWUgPT4gIkpvaG4gRG9lIjsgQGdyZWV0aW5nID0+ICJIZWxsbywgIiArIEBuYW1lICsgIiEiOw==\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/interpret?contentEncoding=base64",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "interpret"],
+          "query": [
+            {
+              "key": "contentEncoding",
+              "value": "base64"
+            }
+          ]
+        }
+      }
+    },
+    {
       "name": "Extract UI Widgets",
       "request": {
         "method": "POST",
@@ -110,6 +137,33 @@
           "raw": "{{baseUrl}}/api/qik/widgets",
           "host": ["{{baseUrl}}"],
           "path": ["api", "qik", "widgets"]
+        }
+      }
+    },
+    {
+      "name": "Extract UI Widgets - Base64 Encoded",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"script\": \"W3RpdGxlID0gXCJVc2VyIE5hbWVcIiwgdHlwZSA9IFwidGV4dFwiXSBAdXNlck5hbWUgPT4gXCJHdWVzdFwiOyBbdGl0bGUgPSBcIkVtYWlsIEFkZHJlc3NcIiwgdHlwZSA9IFwiZW1haWxcIl0gQGVtYWlsID0+IFwidXNlckBleGFtcGxlLmNvbVwiOw==\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/widgets?contentEncoding=base64",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "widgets"],
+          "query": [
+            {
+              "key": "contentEncoding",
+              "value": "base64"
+            }
+          ]
         }
       }
     },
@@ -272,12 +326,39 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"script\": \"QGNsYXNzTmFtZSA9PiAiVXNlciI7IEBuYW1lc3BhY2UgPT4gIk15QXBwLk1vZGVscyI7\",\n  \"fragments\": {\n    \"classTemplate\": \"bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTtcblxucHVibGljIGNsYXNzIEB7Y2xhc3NOYW1lfVxue1xufQ==\",\n    \"interfaceTemplate\": \"bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTtcblxucHVibGljIGludGVyZmFjZSBJQHtjbGFzc05hbWV9XG57XG59\"\n  },\n  \"documents\": {\n    \"src/models/User.cs\": \"{classTemplate}\",\n    \"src/interfaces/IUser.cs\": \"{interfaceTemplate}\"\n  },\n  \"inputs\": {\n    \"@className\": \"Customer\",\n    \"@namespace\": \"MyApp.Domain\"\n  },\n  \"placeholderPrefix\": \"@{\",\n  \"placeholderSuffix\": \"}\"\n}"
+          "raw": "{\n  \"script\": \"@className => \\\"User\\\"; @namespace => \\\"MyApp.Models\\\";\",\n  \"fragments\": {\n    \"classTemplate\": \"namespace @{namespace};\\n\\npublic class @{className}\\n{\\n}\",\n    \"interfaceTemplate\": \"namespace @{namespace};\\n\\npublic interface I@{className}\\n{\\n}\"\n  },\n  \"documents\": {\n    \"src/models/User.cs\": \"{classTemplate}\",\n    \"src/interfaces/IUser.cs\": \"{interfaceTemplate}\"\n  },\n  \"inputs\": {\n    \"@className\": \"Customer\",\n    \"@namespace\": \"MyApp.Domain\"\n  },\n  \"placeholderPrefix\": \"@{\",\n  \"placeholderSuffix\": \"}\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/qik/generate",
           "host": ["{{baseUrl}}"],
           "path": ["api", "qik", "generate"]
+        }
+      }
+    },
+    {
+      "name": "Generate Documents - Simple Class (Base64)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"script\": \"QGNsYXNzTmFtZSA9PiAiVXNlciI7IEBuYW1lc3BhY2UgPT4gIk15QXBwLk1vZGVscyI7\",\n  \"fragments\": {\n    \"classTemplate\": \"bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTsKCnB1YmxpYyBjbGFzcyBAe2NsYXNzTmFtZX0Kewp9\",\n    \"interfaceTemplate\": \"bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTsKCnB1YmxpYyBpbnRlcmZhY2UgSUB7Y2xhc3NOYW1lfQp7Cn0=\"\n  },\n  \"documents\": {\n    \"src/models/User.cs\": \"{classTemplate}\",\n    \"src/interfaces/IUser.cs\": \"{interfaceTemplate}\"\n  },\n  \"inputs\": {\n    \"@className\": \"Customer\",\n    \"@namespace\": \"MyApp.Domain\"\n  },\n  \"placeholderPrefix\": \"@{\",\n  \"placeholderSuffix\": \"}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/qik/generate?contentEncoding=base64",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "qik", "generate"],
+          "query": [
+            {
+              "key": "contentEncoding",
+              "value": "base64"
+            }
+          ]
         }
       }
     },
@@ -293,7 +374,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"script\": \"QGVudGl0eU5hbWUgPT4gIlByb2R1Y3QiOyBAYmFzZVVybCA9PiAiYXBpL0B7cGx1cmFsTmFtZX0iOyBAcGx1cmFsTmFtZSA9PiBsb3dlckNhc2UoQGVudGl0eU5hbWUpICsgInMiOw==\",\n  \"fragments\": {\n    \"controllerHeader\": \"dXNpbmcgTWljcm9zb2Z0LkFzcE5ldENvcmUuTXZjO1xuXG5uYW1lc3BhY2UgQHtuYW1lc3BhY2V9LkNvbnRyb2xsZXJzO1xuXG5bQXBpQ29udHJvbGxlcl1cblttb3V0ZShcIkB7YmFzZVVybH1cIildXG5wdWJsaWMgY2xhc3MgQHtlbnRpdHlOYW1lfUNvbnRyb2xsZXIgOiBDb250cm9sbGVyQmFzZVxue1xu\",\n    \"getMethod\": \"ICAgIFtIdHRwR2V0XVxuICAgIHB1YmxpYyBJQWN0aW9uUmVzdWx0IEdldEFsbCgpXG4gICAge1xuICAgICAgICByZXR1cm4gT2soXCJHZXQgYWxsIEB7ZW50aXR5TmFtZX0gaXRlbXNcIik7XG4gICAgfVxuXG4gICAgW0h0dHBHZXQoXCJ7aWR9XCIpXVxuICAgIHB1YmxpYyBJQWN0aW9uUmVzdWx0IEdldEJ5SWQoaW50IGlkKVxuICAgIHtcbiAgICAgICAgcmV0dXJuIE9rKCRcIkdldCBAe2VudGl0eU5hbWV9IHdpdGggaWQ6IHtpZH1cIik7XG4gICAgfVxuXG5cbiI=\",\n    \"controllerFooter\": \"fQ==\"\n  },\n  \"documents\": {\n    \"src/controllers/@{entityName}Controller.cs\": \"{controllerHeader}{getMethod}{controllerFooter}\"\n  },\n  \"inputs\": {\n    \"@entityName\": \"Order\",\n    \"@namespace\": \"ECommerceApi\"\n  },\n  \"placeholderPrefix\": \"@{\",\n  \"placeholderSuffix\": \"}\"\n}"
+          "raw": "{\n  \"script\": \"@entityName => \\\"Product\\\"; @baseUrl => \\\"api/@{pluralName}\\\"; @pluralName => lowerCase(@entityName) + \\\"s\\\";\",\n  \"fragments\": {\n    \"controllerHeader\": \"using Microsoft.AspNetCore.Mvc;\\n\\nnamespace @{namespace}.Controllers;\\n\\n[ApiController]\\n[Route(\\\\\\\"@{baseUrl}\\\\\\\")]\\npublic class @{entityName}Controller : ControllerBase\\n{\\n\",\n    \"getMethod\": \"    [HttpGet]\\n    public IActionResult GetAll()\\n    {\\n        return Ok(\\\\\\\"Get all @{entityName} items\\\\\\\");\\n    }\\n\\n    [HttpGet(\\\\\\\"{ id}\\\\\\\")]\\n    public IActionResult GetById(int id)\\n    {\\n        return Ok($\\\\\\\"Get @{entityName} with id: {id}\\\\\\\");\\n    }\\n\\n\",\n    \"controllerFooter\": \"}\"\n  },\n  \"documents\": {\n    \"src/controllers/@{entityName}Controller.cs\": \"{controllerHeader}{getMethod}{controllerFooter}\"\n  },\n  \"inputs\": {\n    \"@entityName\": \"Order\",\n    \"@namespace\": \"ECommerceApi\"\n  },\n  \"placeholderPrefix\": \"@{\",\n  \"placeholderSuffix\": \"}\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/qik/generate",
@@ -314,7 +395,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"script\": \"QGFwcE5hbWUgPT4gIk15QXBwIjsgQGVudmlyb25tZW50ID0+ICJEZXZlbG9wbWVudCI7IEBkYXRhYmFzZU5hbWUgPT4gQGFwcE5hbWUgKyAiREIiOw==\",\n  \"fragments\": {\n    \"appSettings\": \"e1xuICBcIkxvZ2dpbmdcIjoge1xuICAgIFwiTG9nTGV2ZWxcIjoge1xuICAgICAgXCJEZWZhdWx0XCI6IFwiSW5mb3JtYXRpb25cIlxuICAgIH1cbiAgfSxcbiAgXCJBcHBsaWNhdGlvblNldHRpbmdzXCI6IHtcbiAgICBcIkFwcE5hbWVcIjogXCJAe2FwcE5hbWV9XCIsXG4gICAgXCJFbnZpcm9ubWVudFwiOiBcIkB7ZW52aXJvbm1lbnR9XCIsXG4gICAgXCJEYXRhYmFzZU5hbWVcIjogXCJAe2RhdGFiYXNlTmFtZX1cIlxuICB9XG59\",\n    \"dockerFile\": \"RlJPTSBtY3IubWljcm9zb2Z0LmNvbS9kb3RuZXQvYXNwbmV0OjkuMCBBUyBiYXNlXG5XT1JLRElSIC9hcHBcbkVYUE9TRSAzMDAwXG5cbkZST00gbWNyLm1pY3Jvc29mdC5jb20vZG90bmV0L3Nkazo5LjAgQVMgYnVpbGRcbldPUktESVIgL3NyY1xuQ09QWSAqLmNzcHJvaiAuL1xuUlVOIGRvdG5ldCByZXN0b3JlXG5DT1BZIC4gLi9cblJVTiBkb3RuZXQgcHVibGlzaCAtYyBSZWxlYXNlIC1vIC9hcHBcblxuRlJPTSBiYXNlXG5XT1JLRElSIC9hcHBcbkNPUFkgLS1mcm9tPWJ1aWxkIC9hcHAgLlxuXG4jIEFwcGxpY2F0aW9uOiBAe2FwcE5hbWV9XG5FTlRSWVBPSU5UIFtcImRvdG5ldFwiLCBcIkB7YXBwTmFtZX0uZGxsXCJd\"\n  },\n  \"documents\": {\n    \"appsettings.json\": \"{appSettings}\",\n    \"Dockerfile\": \"{dockerFile}\"\n  },\n  \"inputs\": {\n    \"@appName\": \"TaskManager\",\n    \"@environment\": \"Production\"\n  },\n  \"placeholderPrefix\": \"@{\",\n  \"placeholderSuffix\": \"}\"\n}"
+          "raw": "{\n  \"script\": \"@appName => \\\"MyApp\\\"; @environment => \\\"Development\\\"; @databaseName => @appName + \\\"DB\\\";\",\n  \"fragments\": {\n    \"appSettings\": \"{\\n  \\\\\\\"Logging\\\\\\\": {\\n    \\\\\\\"LogLevel\\\\\\\": {\\n      \\\\\\\"Default\\\\\\\": \\\\\\\"Information\\\\\\\"\\n    }\\n  },\\n  \\\\\\\"ApplicationSettings\\\\\\\": {\\n    \\\\\\\"AppName\\\\\\\": \\\\\\\"@{appName}\\\\\\\",\\n    \\\\\\\"Environment\\\\\\\": \\\\\\\"@{environment}\\\\\\\",\\n    \\\\\\\"DatabaseName\\\\\\\": \\\\\\\"@{databaseName}\\\\\\\"\\n  }\\n}\",\n    \"dockerFile\": \"FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base\\nWORKDIR /app\\nEXPOSE 3000\\n\\nFROM mcr.microsoft.com/dotnet/sdk:9.0 AS build\\nWORKDIR /src\\nCOPY *.csproj ./\\nRUN dotnet restore\\nCOPY . ./\\nRUN dotnet publish -c Release -o /app\\n\\nFROM base\\nWORKDIR /app\\nCOPY --from=build /app .\\n\\n# Application: @{appName}\\nENTRYPOINT [\\\\\\\"dotnet\\\\\\\", \\\\\\\"@{appName}.dll\\\\\\\"]\"\n  },\n  \"documents\": {\n    \"appsettings.json\": \"{appSettings}\",\n    \"Dockerfile\": \"{dockerFile}\"\n  },\n  \"inputs\": {\n    \"@appName\": \"TaskManager\",\n    \"@environment\": \"Production\"\n  },\n  \"placeholderPrefix\": \"@{\",\n  \"placeholderSuffix\": \"}\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/qik/generate",
