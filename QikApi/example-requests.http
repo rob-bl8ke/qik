@@ -1,3 +1,52 @@
+# Generate Documents - Web API Controller
+POST https://localhost:5001/api/qik/generate
+Content-Type: application/json
+
+{
+  "script": "@entityName => \"Product\"; @baseUrl => \"api/@{pluralName}\"; @pluralName => lowerCase(@entityName) + \"s\";",
+  "fragments": {
+    "controllerHeader": "using Microsoft.AspNetCore.Mvc;\n\nnamespace @{namespace}.Controllers;\n\n[ApiController]\n[Route(\\\"@{baseUrl}\\\")]\npublic class @{entityName}Controller : ControllerBase\n{\n",
+    "getMethod": "    [HttpGet]\n    public IActionResult GetAll()\n    {\n        return Ok(\\\"Get all @{entityName} items\\\");\n    }\n\n    [HttpGet(\\\"{ id}\\\")]\n    public IActionResult GetById(int id)\n    {\n        return Ok($\\\"Get @{entityName} with id: {id}\\\");\n    }\n\n",
+    "controllerFooter": "}"
+  },
+  "documents": {
+    "src/controllers/@{entityName}Controller.cs": "{controllerHeader}{getMethod}{controllerFooter}"
+  },
+  "inputs": {
+    "@entityName": "Order",
+    "@namespace": "ECommerceApi"
+  },
+  "placeholderPrefix": "@{",
+  "placeholderSuffix": "}"
+}
+
+###
+
+# Generate Documents - Configuration Files
+POST https://localhost:5001/api/qik/generate
+Content-Type: application/json
+
+{
+  "script": "@appName => \"MyApp\"; @environment => \"Development\"; @databaseName => @appName + \"DB\";",
+  "fragments": {
+    "appSettings": "{\n  \\\"Logging\\\": {\n    \\\"LogLevel\\\": {\n      \\\"Default\\\": \\\"Information\\\"\n    }\n  },\n  \\\"ApplicationSettings\\\": {\n    \\\"AppName\\\": \\\"@{appName}\\\",\n    \\\"Environment\\\": \\\"@{environment}\\\",\n    \\\"DatabaseName\\\": \\\"@{databaseName}\\\"\n  }\n}",
+    "dockerFile": "FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base\nWORKDIR /app\nEXPOSE 3000\n\nFROM mcr.microsoft.com/dotnet/sdk:9.0 AS build\nWORKDIR /src\nCOPY *.csproj ./\nRUN dotnet restore\nCOPY . ./\nRUN dotnet publish -c Release -o /app\n\nFROM base\nWORKDIR /app\nCOPY --from=build /app .\n\n# Application: @{appName}\nENTRYPOINT [\\\"dotnet\\\", \\\"@{appName}.dll\\\"]"
+  },
+  "documents": {
+    "appsettings.json": "{appSettings}",
+    "Dockerfile": "{dockerFile}"
+  },
+  "inputs": {
+    "@appName": "TaskManager",
+    "@environment": "Production"
+  },
+  "placeholderPrefix": "@{",
+  "placeholderSuffix": "}"
+}
+# =============================
+# Qik API Example Requests
+# =============================
+
 # Example API Requests for Qik API
 
 ## Health Check
@@ -10,12 +59,23 @@ GET https://localhost:5001/api/qik/functions
 
 ###
 
-## Interpret Simple Script
+
+# Interpret Simple Script (plain text)
 POST https://localhost:5001/api/qik/interpret
 Content-Type: application/json
 
 {
   "script": "@name => \"John Doe\"; @greeting => \"Hello, \" + @name + \"!\";"
+}
+
+###
+
+# Interpret Simple Script (Base64)
+POST https://localhost:5001/api/qik/interpret?contentEncoding=base64
+Content-Type: application/json
+
+{
+  "script": "QG5hbWUgPT4gXCJKb2huIERvZVwiOyBAbmFtZSA9PiBcIkhlbGxvLCBcIiArIEBuYW1lICsgXCIhXCI7"
 }
 
 ###
@@ -43,12 +103,56 @@ Content-Type: application/json
 
 ###
 
-## Extract UI Widgets
+
+# Extract UI Widgets (plain text)
 POST https://localhost:5001/api/qik/widgets
 Content-Type: application/json
 
 {
   "script": "[title = \"User Name\", type = \"text\"] @userName => \"Guest\"; [title = \"Email Address\", type = \"email\"] @email => \"user@example.com\";"
+}
+
+###
+
+# Extract UI Widgets (Base64)
+POST https://localhost:5001/api/qik/widgets?contentEncoding=base64
+Content-Type: application/json
+
+{
+  "script": "W3RpdGxlID0gXCJVc2VyIE5hbWVcIiwgdHlwZSA9IFwidGV4dFwiXSBAdXNlck5hbWUgPT4gXCJHdWVzdFwiOyBbdGl0bGUgPSBcIkVtYWlsIEFkZHJlc3NcIiwgdHlwZSA9IFwiZW1haWxcIl0gQGVtYWlsID0+IFwidXNlckBleGFtcGxlLmNvbVwiOyI=
+}
+# Add: Generate Documents (plain text)
+POST https://localhost:5001/api/qik/generate
+Content-Type: application/json
+
+{
+  "script": "@className => \"User\"; @namespace => \"MyApp.Models\";",
+  "fragments": {
+    "classTemplate": "namespace @{namespace};\n\npublic class @{className}\n{\n}\n"
+  },
+  "documents": {
+    "models/User.cs": "{classTemplate}"
+  },
+  "placeholderPrefix": "@{",
+  "placeholderSuffix": "}"
+}
+
+###
+
+# Generate Documents (Base64)
+POST https://localhost:5001/api/qik/generate?contentEncoding=base64
+Content-Type: application/json
+
+{
+  "script": "QGNsYXNzTmFtZSA9PiAiVXNlciI7IEBuYW1lc3BhY2UgPT4gIk15QXBwLk1vZGVscyI7",
+  "fragments": {
+    "classTemplate": "bmFtZXNwYWNlIEB7bmFtZXNwYWNlfTtcblxucHVibGljIGNsYXNzIEB7Y2xhc3NOYW1lfVxue1xufQ=="
+  },
+  "documents": {
+    "models/User.cs": "{classTemplate}"
+  },
+  "placeholderPrefix": "@{",
+  "placeholderSuffix": "}"
 }
 
 ###
@@ -152,12 +256,23 @@ Content-Type: application/json
 
 ###
 
-## Encoding/Decoding - Base64
+
+# Encoding/Decoding - Base64 (plain text)
 POST https://localhost:5001/api/qik/interpret
 Content-Type: application/json
 
 {
   "script": "@original => \"Hello World\"; @encoded => base64Encode(@original); @decoded => base64Decode(@encoded);"
+}
+
+###
+
+# Encoding/Decoding - Base64 (Base64 input)
+POST https://localhost:5001/api/qik/interpret?contentEncoding=base64
+Content-Type: application/json
+
+{
+  "script": "QG9yaWdpbmFsID0+IFwiSGVsbG8gV29ybGRcIjsgQGVuY29kZWQgPT4gYmFzZTY0RW5jb2RlKEBvcmlnaW5hbCk7IEBkZWNvZGVkID0+IGJhc2U2NERlY29kZShAZW5jb2RlZCk7"
 }
 
 ###
