@@ -27,10 +27,24 @@
 	// }
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "mkdir -p $HOME/.aspnet/https && cp /workspaces/qik/docs/cert/aspnetapp.pfx $HOME/.aspnet/https/"
+	"postCreateCommand": "mkdir -p $HOME/.aspnet/https && cp /workspaces/qik/docs/cert/aspnetapp.pfx $HOME/.aspnet/https/",
 
 	// Configure tool-specific properties.
-	// "customizations": {},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-dotnettools.csdevkit",
+				"mike-lischke.vscode-antlr4",
+				"mhutchie.git-graph",
+				"bierner.markdown-mermaid",
+				"patcx.vscode-nuget-gallery",
+				"aliasadidev.nugetpackagemanagergui",
+				"jebbs.plantuml",
+				"eamodio.gitlens",
+				"gruntfuggly.todo-tree"
+			]
+		}
+	}
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
