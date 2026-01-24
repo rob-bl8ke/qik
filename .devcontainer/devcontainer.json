@@ -16,7 +16,15 @@
 	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {
+			"nodeGypDependencies": true,
+			"installYarnUsingApt": true,
+			"version": "lts",
+			"pnpmVersion": "latest",
+			"nvmVersion": "latest"
+		}
+	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [5000, 5001],
@@ -26,14 +34,26 @@
 	//		}
 	// }
 
+	"remoteUser": "root",
+
+	"mounts": [
+		"type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock"
+	],
+
+
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "mkdir -p $HOME/.aspnet/https && cp /workspaces/qik/docs/cert/aspnetapp.pfx $HOME/.aspnet/https/",
+	"postCreateCommand": [
+		"/bin/sh",
+		"-c",
+		"rm -f /etc/apt/sources.list.d/yarn.list && apt-get update && apt-get install -y ca-certificates curl gnupg && install -m 0755 -d /etc/apt/keyrings && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && chmod a+r /etc/apt/keyrings/docker.gpg && echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable\" > /etc/apt/sources.list.d/docker.list && apt-get update && apt-get install -y docker-ce-cli docker-compose-plugin"
+	],
 
 	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"ms-dotnettools.csdevkit",
+				"sonarsource.sonarlint-vscode",
 				"mike-lischke.vscode-antlr4",
 				"mhutchie.git-graph",
 				"bierner.markdown-mermaid",
@@ -41,8 +61,32 @@
 				"aliasadidev.nugetpackagemanagergui",
 				"jebbs.plantuml",
 				"eamodio.gitlens",
+				"ms-azuretools.vscode-containers",
 				"gruntfuggly.todo-tree"
-			]
+			],
+			"settings": {
+					"antlr4.generation": {
+					"mode": "external",
+					"language": "CSharp",
+					"visitors": true,
+					"outputDir": "_antlr",
+					"package": "CygSoft.Qik.Antlr"
+				},
+				"antlr4.debug": {
+					"visualParseTreeHorizontal": true,
+					"visualParseTreeClustered": false
+				},
+				"remote.autoForwardPortsFallback": 0,
+				"sonarlint.connectedMode.connections.sonarqube": [
+					{
+					"serverUrl": "http://localhost:9000",
+					"token": "${env:SONAR_TOKEN}"
+					}
+				],
+				"sonarlint.connectedMode.project": {
+					"projectKey": "qik-rest-api"
+				}
+			}
 		}
 	}
 
