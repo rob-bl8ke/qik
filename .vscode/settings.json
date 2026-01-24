@@ -1,2 +1,23 @@
 {
+    "antlr4.generation": {
+        "mode": "external",
+        "language": "CSharp",
+        "visitors": true,
+        "outputDir": "_antlr",
+        "package": "CygSoft.Qik.Antlr"
+    },
+    "antlr4.debug": {
+        "visualParseTreeHorizontal": true,
+        "visualParseTreeClustered": false
+    },
+    "remote.autoForwardPortsFallback": 0,
+    "sonarlint.connectedMode.connections.sonarqube": [
+        {
+        "serverUrl": "http://localhost:9000",
+        "token": "${env:SONAR_TOKEN}"
+        }
+    ],
+    "sonarlint.connectedMode.project": {
+        "projectKey": "qik-rest-api"
+    }
 }
