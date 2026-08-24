@@ -1,110 +1,297 @@
 
-# Get up and Running
+# Qik
 
-Find it on [Nuget](https://www.nuget.org/packages/rob_bl8ke.Qik/)
+A script-based template generation library and REST API built on ANTLR4. Qik provides a custom scripting language for defining variables, expressions, conditional logic, and text transformation functions — useful for dynamic code generation, document templating, and building configurable UI forms.
 
-### Run
-To run the console application only the `dotnet run` command is necessary unless running for the first time.
+**NuGet**: [rob_bl8ke.Qik](https://www.nuget.org/packages/rob_bl8ke.Qik/)  
+**License**: GPL-3.0-or-later
+
+---
+
+## Solution Structure
+
+| Project | Target | Description |
+|---------|--------|-------------|
+| **Qik** | net7.0 | Core library — interpreter, symbol table, functions, ANTLR visitors |
+| **QikAntlr** | net7.0 | ANTLR4 grammar (`QikTemplate.g4`) and generated parser/lexer |
+| **QikApi** | net9.0 | ASP.NET Core Web API exposing the library over HTTP |
+| **QikTests** | net7.0 | Unit tests for the core library (NUnit) |
+| **QikApiTests** | net9.0 | Unit + integration tests for the API (NUnit) |
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- .NET 7 SDK (core library & tests)
+- .NET 9 SDK (API project)
+
+### Build & Run
 
 ```bash
-dotnet clean
 dotnet restore
 dotnet build
 ```
 
-To enure a clean restart when restoring the cache (or if you run into dependency issues), you an try: `dotnet restore --no-cache`.
+Run the API:
 
+```bash
+dotnet run --project QikApi
 ```
-dotnet publish -c release
-```
-# Tests
 
-To run the tests simply run the following commands.
+The API launches with Swagger UI at the root URL for interactive exploration.
+
+### Run Tests
+
 ```bash
 dotnet test
 ```
 
+Or target a specific project:
+
 ```bash
-dotnet test ./qiktests/qiktests.csproj
-```
-### Internals Visible
-
-Adding `InternalsVisibleTo` for tests.
-```xml
-  <ItemGroup>
-    <InternalsVisibleTo Include="QikTests" /> <!-- [assembly: InternalsVisibleTo("CustomTest1")] -->
-  </ItemGroup>
+dotnet test ./QikTests/QikTests.csproj
+dotnet test ./QikApiTests/QikApiTests.csproj
 ```
 
-### Possible Test Explorers/Runners
+---
 
-It might be worth exploring these and others like them at a later stage. At this point you haven't found any of these working effectively.
+## Qik Scripting Language
 
-- https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-test-explorer&ssr=false#overview
-- https://marketplace.visualstudio.com/items?itemName=formulahendry.dotnet-test-explorer&ssr=false#overview
-- https://marketplace.visualstudio.com/items?itemName=wghats.vscode-nxunit-test-adapter&ssr=false#overview
+### Variables
 
-# Maintenance
+All variables start with `@` and are declared with the `=>` operator:
 
-To see the current status of your installed SDKs and whether there are patches or updates available run `dotnet sdk check`. 
+```
+@name => "Alice";
+@greeting => "Hello, " + @name + "!";
+```
 
-### Version Management
+### UI Widget Metadata
 
-To target an SDK (or SDK range), `global.json` is used:
+Attach metadata for dynamic form generation:
+
+```
+[title = "Enter Name", type = "text"] @userName => "Default";
+```
+
+### String Concatenation
+
+```
+@fullName => @firstName + " " + @lastName;
+```
+
+### Constants
+
+`TAB`, `SPACE`, `NEWLINE` — built-in constants for whitespace characters.
+
+### Conditional Logic
+
+**Ternary:**
+```
+@status => @count == "0" ? "empty" : "has items";
+```
+
+**If-Else:**
+```
+@color =>
+    if @score == "A" then "green"
+    else if @score == "B" then "yellow"
+    else "red";
+```
+
+**Switch:**
+```
+@dayType =>
+    switch @day
+        case "Saturday" then "Weekend"
+        case "Sunday" then "Weekend"
+        else "Weekday";
+```
+
+### Comments
+
+```
+/* Block comment */
+// Line comment
+@var => "value"; // Inline comment
+```
+
+---
+
+## Built-in Functions
+
+### Text Transformation
+`camelCase`, `upperCase`, `lowerCase`, `properCase`, `replace`, `abbreviate`, `removePunctuation`, `removeSpaces`
+
+### Padding & Formatting
+`padLeft`, `padRight`, `indentLine`, `doubleQuote`
+
+### Encoding
+`base64Encode`, `base64Decode`, `urlEncode`, `urlDecode`, `htmlEncode`, `htmlDecode`
+
+### Generation
+`guid`, `currentDate`
+
+Functions compose naturally:
+
+```
+@result => upperCase(camelCase(@input));
+@encoded => base64Encode(urlEncode(@data));
+```
+
+### Plugin System
+
+Custom functions can be loaded from DLLs placed in a `Plugins/` folder alongside the application. Plugins extend `BaseFunction` and are annotated with `[QikFunction]`.
+
+---
+
+## REST API Endpoints
+
+Base path: `/api/qik`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/interpret` | Interpret a full script, return all variable values |
+| POST | `/generate` | Generate documents from script + fragment templates |
+| POST | `/evaluate` | Evaluate a single expression with context variables |
+| POST | `/widgets` | Extract UI widget metadata from a script |
+| GET | `/functions` | List all available functions with descriptions |
+| GET | `/health` | Health check |
+
+### Content Encoding
+
+The `/interpret`, `/generate`, and `/widgets` endpoints accept an optional `?contentEncoding=base64` query parameter for binary-safe transport of scripts and templates.
+
+### Example: Interpret
+
+```http
+POST /api/qik/interpret
+Content-Type: application/json
+
+{
+  "script": "@class => \"UserService\"; @code => \"public class \" + @class + \" { }\";"
+}
+```
+
+Response:
 
 ```json
 {
-    "sdk": {
-        "version": "7.0.203",
-        "rollForward": "latestFeature"
-    }
+  "success": true,
+  "values": {
+    "@class": "UserService",
+    "@code": "public class UserService { }"
+  }
 }
 ```
-This specifies that the the latest installed "7.0.*" can be used.
 
-When a major version is changed (eg. net6 to net7), the following should be checked and modified:
+### Example: Generate Documents
 
-- `release.sh` needs to target the correct folder.
-- `launch.json` must be modified in all places where the new build folders are specified.
-- `QikConsoleTests.csproj` must be modified where `BuildAndCopyTestPlugin` is described.
+```http
+POST /api/qik/generate
+Content-Type: application/json
 
-
-# Antlr
-
-### ANTLR4 grammar syntax support VS Code Plugin
-
-The extension for ANTLR4 support in Visual Studio code. Provides Code Completion + Symbol Information, Grammar Validations, and Visualizations.
-
-- ANTLR4 grammar syntax support [MarketPlace](https://marketplace.visualstudio.com/items?itemName=mike-lischke.vscode-antlr4&ssr=false#qna)
-- ANTLR4 grammar syntax support [Github](https://github.com/mike-lischke/vscode-antlr4)
-
-### Usage
-
-Important that the settings are set up correctly or the grammar file will not generate into C# source code. The mode must be external in order to use the CSharp option and it is important to set the output directory and namespace using the item keys below:
-
- Item | Value |
-| --- | :--- |
-| mode | external  |
-| language | CSharp  |
-| listeners | true  |
-| visitors | true  |
-| outputDir | _antlr  |
-| package | CygSoft.Qik.Antlr  |
-
-When everything is working the files in the `./QikAntlr/_antlr` folder will generate every time a change is made to the `QikTemplate.g4` file. If your files aren't generating it is usually because of one of the reasons below:
-
-- Ensuring that you've added the correcdt settings above for both user and workspace.
-- It is possible that there is a problem with your `*.g4` template file.
-
-### Plugin Workspace Settings
-```
 {
-    "antlr4.generation": {
-        "mode": "external",
-        "language": "CSharp",
-        "visitors": true,
-        "outputDir": "_antlr",
-        "package": "CygSoft.Qik.Antlr"
-    }
+  "script": "@className => \"User\"; @namespace => \"MyApp.Models\";",
+  "fragments": {
+    "classTemplate": "namespace @{namespace};\n\npublic class @{className}\n{\n}\n"
+  },
+  "documents": {
+    "models/User.cs": "{classTemplate}"
+  },
+  "placeholderPrefix": "@{",
+  "placeholderSuffix": "}"
 }
 ```
+
+### CORS
+
+Configured by default for `http://localhost:4200` (Angular frontend).
+
+---
+
+## Architecture
+
+```
+┌──────────────┐      ┌──────────────┐
+│   QikApi     │─────▶│     Qik      │
+│ (ASP.NET 9)  │      │  (Library)   │
+└──────────────┘      └──────┬───────┘
+                             │
+                      ┌──────▼───────┐
+                      │   QikAntlr   │
+                      │  (Grammar)   │
+                      └──────────────┘
+```
+
+1. **QikAntlr** — defines the `QikTemplate.g4` grammar and generates the lexer/parser via ANTLR4.
+2. **Qik** — walks the parse tree with visitors (`UserInputVisitor`, `ExpressionVisitor`, `UiWidgetVisitor`) to populate a `SymbolTable`. Functions are resolved through a `FunctionFactory` with a plugin extension point.
+3. **QikApi** — thin HTTP layer using `QikService` to bridge requests to the interpreter.
+
+---
+
+## Development Notes
+
+### ANTLR4 Grammar (VS Code)
+
+Install the [ANTLR4 grammar syntax support](https://marketplace.visualstudio.com/items?itemName=mike-lischke.vscode-antlr4) extension with these workspace settings:
+
+```json
+{
+  "antlr4.generation": {
+    "mode": "external",
+    "language": "CSharp",
+    "visitors": true,
+    "outputDir": "_antlr",
+    "package": "CygSoft.Qik.Antlr"
+  }
+}
+```
+
+Changes to `QikAntlr/QikTemplate.g4` auto-generate files into `QikAntlr/_antlr/`.
+
+### Docker (SonarQube)
+
+A `docker-compose.yml` provides a local SonarQube instance for code analysis:
+
+```bash
+docker compose up -d
+```
+
+### Publishing
+
+```bash
+dotnet publish -c Release
+```
+
+### SDK Management
+
+Use `dotnet sdk check` to verify installed SDK versions. A `global.json` can pin the SDK:
+
+```json
+{
+  "sdk": {
+    "version": "7.0.203",
+    "rollForward": "latestFeature"
+  }
+}
+```
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Technical Guide](docs/technical-guide.md) | Full language reference — syntax, all functions, conditional logic, advanced features, and interpreter usage |
+| [API Overview](docs/OVERVIEW.md) | Detailed REST API documentation with endpoint descriptions and usage examples |
+| [Getting Started](docs/GETTING-STARTED.md) | Content encoding guide — how to use Base64 vs plain text with the API |
+| [Generate Endpoint Summary](docs/GENERATE-ENDPOINT-SUMMARY.md) | Implementation details for the `/api/qik/generate` endpoint |
+| [Configurable Placeholders](docs/demo-configurable-placeholders.md) | How to use custom placeholder prefixes/suffixes in template generation |
+| [Project Summary](docs/PROJECT-SUMMARY.md) | High-level overview of what was built and the feature checklist |
+| [VS Code Syntax Highlighting](docs/vs-code-syntax-highlighting.md) | Guide to creating a VS Code extension for Qik language syntax highlighting |
+| [SonarQube Setup](docs/sonarqube/sonarqube-local-setup-guide.md) | Running SonarQube locally with Docker for code analysis |
+| [HTTPS Certificate](docs/cert/certificate-import.md) | Configuring persistent HTTPS dev certificates in .NET dev containers |
+| [Postman Collection](docs/http/QikApi.postman_collection.json) | Importable Postman collection for testing all API endpoints |
